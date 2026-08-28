@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Button, Chip, IconButton, ThemeProvider, createTheme } from '@mui/material'
 import ArrowOutwardRounded from '@mui/icons-material/ArrowOutwardRounded'
 import MenuRounded from '@mui/icons-material/MenuRounded'
@@ -7,9 +7,11 @@ import LinkedIn from '@mui/icons-material/LinkedIn'
 import GitHub from '@mui/icons-material/GitHub'
 import Instagram from '@mui/icons-material/Instagram'
 import NorthEastRounded from '@mui/icons-material/NorthEastRounded'
+import LightModeRounded from '@mui/icons-material/LightModeRounded'
+import DarkModeRounded from '@mui/icons-material/DarkModeRounded'
 
-const theme = createTheme({
-  palette: { primary: { main: '#ff6b35' }, text: { primary: '#17231d', secondary: '#66716b' } },
+const makeTheme = (mode) => createTheme({
+  palette: { mode, primary: { main: mode === 'dark' ? '#8ee6a8' : '#b85c38' }, text: { primary: mode === 'dark' ? '#e8eee9' : '#27251f', secondary: mode === 'dark' ? '#9aa69f' : '#6e6a5f' } },
   typography: { fontFamily: 'DM Sans, sans-serif', button: { textTransform: 'none', fontWeight: 600 } },
   shape: { borderRadius: 10 },
 })
@@ -32,11 +34,22 @@ function SectionTitle({ eyebrow, title, action }) {
 
 function App() {
   const [open, setOpen] = useState(false)
+  const [mode, setMode] = useState(() => {
+    const saved = localStorage.getItem('portfolio-theme')
+    return saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+  })
+  const theme = useMemo(() => makeTheme(mode), [mode])
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = mode
+    localStorage.setItem('portfolio-theme', mode)
+  }, [mode])
+
   return <ThemeProvider theme={theme}>
     <header className="nav-wrap">
       <a className="logo" href="#top">A<span>.</span></a>
       <nav className={open ? 'open' : ''}>{nav.map(item => <a key={item} href={`#${item.toLowerCase()}`} onClick={() => setOpen(false)}>{item}</a>)}<Button className="mobile-contact" variant="contained" href="#contact">Let’s talk</Button></nav>
-      <Button className="contact-btn" variant="outlined" href="#contact">Let’s talk <ArrowOutwardRounded fontSize="small" /></Button>
+      <div className="nav-actions"><IconButton className="theme-toggle" onClick={() => setMode(mode === 'dark' ? 'light' : 'dark')} aria-label={`Switch to ${mode === 'dark' ? 'light' : 'dark'} mode`} title={`Switch to ${mode === 'dark' ? 'light' : 'dark'} mode`}>{mode === 'dark' ? <LightModeRounded /> : <DarkModeRounded />}</IconButton><Button className="contact-btn" variant="outlined" href="#contact">Let’s talk <ArrowOutwardRounded fontSize="small" /></Button></div>
       <IconButton className="menu-btn" onClick={() => setOpen(!open)} aria-label="Toggle menu">{open ? <CloseRounded /> : <MenuRounded />}</IconButton>
     </header>
 
